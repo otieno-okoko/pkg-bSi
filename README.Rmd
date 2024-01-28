@@ -1,0 +1,261 @@
+---
+title: "Introduction to Package BSi"
+author:
+  - name: "George Okoko & Rogers Owit"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    code_folding: show
+    keep_md: true
+  rmarkdown::pdf_document:
+    toc: true
+    code_folding: show
+    keep_tex: true
+vignette: >
+  %\VignetteIndexEntry{Introduction to Package BSi}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+**Principle**
+
+There are a couple of techniques developed to measure biogenic silica or opal in both inland and pelagic sediments. Wet alkaline digestion is one of the most preferred because of its reliability (DeMaster, 1981; 1991; Conley & Schelske, 2002). The technique relies on quantitatively dissolving all amorphous Si (the biogenic fraction) in the sediment using a weak base solution (2M 20% w/w \(\mathrm{Na}_2\mathrm{CO}_3\)) and the dissolution of a minute fraction of the silicate minerals in the sediments. 
+
+A sediment sample is first frozen and later freeze-dried for 24 hours and left to re-equilibrate with the atmosphere at room temperature (Mortlock & Froelich, 1989; DeMaster, 1991; Conley & Schelske, 2002). The samples are freeze-dried rather than oven dried since freeze-drying removes the sediment moisture content without altering the structure of the sediment (Hjorth, 2004). Additionally, freeze-drying is important since it preserves the biological and chemical status of the sediments making the sediments viable for other analysis, for example, diatoms. 
+
+Timed aliquots (3, -4, and 5-hr) are extracted from the Sodium carbonate solution (\(\mathrm{Na}_2\mathrm{CO}_3\)) and dyed molybdate blue.  Spectrophotometer is used to determine the samples absorption at 812 nm. The absorption values are then used to calculate the percent biogenic silica in the sample and a least squares regression line plotted to perform a linear correction for dissolution of silica from mineralogical sources i.e. clays/aluminosilicates. 
+
+The `bSi` package is an R package designed for the analysis of `biogenic silica (bSi)` data from inland and pelagic sediments. It leverages some functionalities of packages like __tidyr__, __cowplot__ and __ggplot2__ to facilitate data loading, and enable the analysis of multiple samples for percent biogenic silica and ultimately BSi Fluxes. This vignette provides an overview of the package's functionality and demonstrates the usage of key functions.
+
+**Installation**
+
+Package `bSi` depends on package `__tidyr__`, `__cowplot__`, `__ggpubr__` and `__ggplot2__` to execute an array of commands within the 'bSi' analytical workflow. It is thus imperative for the user to ensure these are installed. However, by installing 'bSi', the above packages will also be installed as dependencies. 
+You can install package `bSi` from CRAN using the following command:
+
+```{r install-bSi}
+#install.packages("bSi")
+```
+
+For local drive installation of bSi.tar file use:
+
+```{r}
+#install.packages("bSi", repos=NULL, type= "source")
+```
+
+For mac users, make sure to have **Xcode Command Line Tools** installed on your macOS. Additionally, allow the installation of **package dependencies** when prompted by R. The installation process should be similar to ones above when installing .tar file or from CRAN. 
+
+Once installed you can load the package for use as follows:
+```{r setup}
+library(bSi)
+```
+
+
+**Details**
+
+The five key functions contained in this package are __plotStdC__, __tdgraph__, __silco__, __pBSI__ and __flux__. 
+
+**`plotStdC`{style="font-size: x-large; font-weight: bold;"}**
+
+**Description**
+
+The `plotStdC` (plot standard curves) function creates a scatter plot using Si concentration values (y) and absorbance values (x). The plot is a Standard Calibration curve from 5 known concentration of silica in the standard solutions against their respective absorbance values as measured by a spectrophotometer. The unit used here is millimoles. The five standards should yield an `r-squared value of > 0.99` (Mortlock & Froelich, 1989) . The function then fits a line of best fit/ trend line to the data and returns the `y-intercept` and `R-squared values` for each sample data plotted. The function also saves these stats in a csv file and the sample plots as tiff object.
+
+
+Usage:plotStdC(y, x, 
+               title = "Concentration vs. Absorbance",
+               xlab = "Absorbance",
+               ylab = "Concentrations")
+
+**Arguments** 
+
+**y**: A numeric vector of concentration values.
+
+**x**: A numeric vector of absorbance values.
+
+**title**: A character string for the plot title.
+
+**xlab**: A character string for the x-axis label.
+
+**ylab**: A character string for the y-axis label.
+
+Example:
+```{r}
+# Load required libraries
+#library(bSi)
+# Example data
+#concentration <- c(0.1, 0.3, 0.5, 0.7, 0.9)
+#absorbance <- c(1.2, 2.4, 3.1, 4.0, 4.8)
+#Create a scatter plot and fit a line of best fit
+#result <- plotStdC(concentration, absorbance)
+#print(result)
+```
+
+**`tdgraph`{style="font-size: x-large; font-weight: bold;"}**
+
+**Description**
+
+The `tdgraph` (time-course dissolution graphs) function reads a CSV file, creates a time-dissolution graph, saves the graph in a tiff format and writes a CSV file with the equation of the line, R-squared value, and y-intercept. This is a quick and easy way to visualize absorbance values from digested samples against time. The data is sourced from aliquots extracted from hot water bath (temp = 85^0^C) at 3,4,5-hr interval during wet-alkaline digestion (Conley & Schelske, 2002).
+
+Usage:tdgraph(data_file, output_plot_file,
+                    output_csv_file,
+                    label_y1 = 0.0550,
+                    label_y2 = 0.0320,
+                    param =NULL, 
+                    value=NULL, 
+                    eq.label=NULL, 
+                    rr.label=NULL,
+                    . =NULL) 
+
+**Arguments**
+
+**data_file**: Path to the data CSV file.
+
+**output_plot_file**: Path to save the graph as a TIFF file.
+
+**output_csv_file**: Path to save the output CSV file.
+
+**label_y1**: y-coordinate for the first equation label.
+
+**label_y2**: y-coordinate for the second equation label.
+
+Example:
+```{r}
+# data_file <- system.file("extdata", "mydata.csv", package = "bSi")
+# output_plot_file <- file.path(tempdir(), "plot1.tiff")
+# output_csv_file <- file.path(tempdir(), "output.csv")
+# param <- NULL
+# value <- NULL
+# eq.label <- NULL
+# rr.label <- NULL
+# . <- NULL
+# tdgraph(data_file, output_plot_file, output_csv_file,
+#         label_y1 = 0.055, label_y2 = 0.032, param, value, eq.label, rr.label, .)
+```
+
+**`silco`{style="font-size: x-large; font-weight: bold;"}**
+
+**Description**
+
+The `silco` (Silica concentration) function calculates Si concentration (C0) values based on the provided slope (m) and y-intercept (y) from function `tdgraph`. The sample data is loaded from a CSV file, and the intercept (c) from function `plotStdC` is used.
+
+Usage:silco(m, y, c, data, output_dir = NULL)
+
+**Arguments**
+
+**m**: The slope value (replace with the actual slope from plotStdC).
+
+**y**: The y-intercept (replace with the actual intercept from tdgraph).
+
+**c**: The intercept (replace with the actual intercept from plotStdC).
+
+**data**: Path to the CSV file containing output values from plotStdC.
+
+**output_dir**: The directory where the output CSV file should be saved. Defaults to the temporary directory                       (tempdir()).
+
+Example:
+```{r}
+#data<- system.file("extdata", "WLO6output.csv", package = "bSi")
+# m <- 5.6073  # Replace with the actual slope from plotStdC
+# y <- 0.1234  # Replace with the actual intercept from tdgraph
+# c <- 0.5678  # Replace with the actual intercept from plotStdC
+# C0 <- silco(m, y, c, data)
+```
+
+
+**`pbSi`{style="font-size: x-large; font-weight: bold;"}**
+
+**Description**
+
+The `pbSi` (%bSi) function calculates the percentage of bSi in analyzed samples based on the formula \[(\%)bSi= \left( \frac{{C_0 \, \text{(mol/L)} \cdot \mathrm{Na}_2\mathrm{CO}_3 \, \text{(L)} \cdot \text{Molar mass of silicon (g/mol)}}}{{\text{sample dry weight (g)}}} \right) \times \left( \frac{1}{1000} \right) \times 100\]
+
+
+Usage:pbSi(C0, Vol_Na2CO3, Molar_mass_silicon, sample_dry_weight, output_dir= NULL)
+
+**Arguments**
+
+
+**C0**: Concentration of silica from biogenic sources (mole/L). 
+
+**Vol_\(\mathrm{Na}_2\mathrm{CO}_3\) (ml)**: volume of \(\mathrm{Na}_2\mathrm{CO}_3\) used in sample digestion (40 ml).
+
+**Molar_mass_silicon**: Molar mass of silicon (28.09 g/mol).
+
+**sample_dry_weight**: Measured dry weight of each sample in grams (0.05 +/- 0.005g).
+
+**1/1000**: Conversion factor from millimoles to g/mol.
+
+**100**: Conversion factor from theoretical molar absorptivity (sensitivity) for the silicomolybdate-blue method in deionized water standards. This is because the 2 M \(\mathrm{Na}_2\mathrm{CO}_3\) alkaline "salt" solutions when diluted by a factor of 100 are too dilute to cause a significant salt or pH effect in the formation of the silicomolybdate complex. See Strickland (1952) and Strickland & Parsons (1972) for explanation on silicomolybdate complexes. 
+
+**output_dir**: The directory where the output CSV file should be saved. Defaults to the temporary directory                       (tempdir()).
+
+Example:
+```{r}
+#C0 <- 0.01  # Concentration of silica from biogenic sources mol/L
+#Vol_Na2CO3 <- 0.04  # Vol. Na2CO3 (L)
+#Molar_mass_silicon <- 28.09  # Molar mass of silicon (g/mol)
+#sample_dry_weight <- 0.05  # Sample dry weight (g)
+#result <- pbSi(C0, Vol_Na2CO3, Molar_mass_silicon, sample_dry_weight)
+#print(paste("%bSi =", result))
+```
+
+
+**`flux`{style="font-size: x-large; font-weight: bold;"}**
+
+**Description**
+
+'bSi' flux is the rate of biogenic silica deposited in a given square area per year (gcm^2^yr^1^/gm^2^yr^1^).This function calculates the flux based on the percentage of biogenic silica (%bSi) and Sediment Mass Accumulation Rates (MARS). If the units of MARS are in 'gcm^2^/yr', the output flux is multiplied by 100 to convert the values and units to gm^2^yr^1^. This is because bSi flux is conventionally reported in gm^2^yr^1^. The function then returns a numeric vector representing the calculated bSi flux values.
+
+
+Usage: flux(pbSi = c(2, 5, 8), MARS = c(10, 15, 20),output_csv_file = "path/to/your/output.csv")
+
+
+**Arguments**
+
+**pbSi**: A numeric vector or column from a data frame representing the percentage of biogenic silica.
+
+**MARS**: A numeric vector or column from a data frame representing the Sediment Mass Accumulation Rates.
+
+**data_file**: Path to a CSV file containing columns for pbSi and MARS. If provided, it will override pBSi and MARS arguments.
+
+**output_csv_file**: Path to save the output CSV file containing BSi flux values.
+
+Example 1: Using vectors
+```{r}
+#flux_values <- flux(pbSi = c(2, 5, 8), MARS = c(10, 15, 20),
+# output_csv_file = tempfile("flux_output1.csv"))
+```
+
+
+Example 2: Using data from a file
+```{r}
+#data_file <- system.file("extdata", "example_data.csv", package = "bSi")
+#flux_values <- flux(data_file = data_file, output_csv_file = tempfile("flux_output2.csv"))
+```
+
+
+**References**
+
+1. Conley, D. J., & Schelske, C. L. (2002). Biogenic silica. In Tracking environmental change using lake sediments (pp. 281-293). Springer, Dordrecht.
+
+2. DeMaster, D. J., 1981. The supply and accumulation of silica in the marine environment. 	Geochim. Cosmochim. Acta 45: 1715–1732. 
+
+3. DeMaster, D. J., 1991. Measuring biogenic silica in marine sediments and suspended matter. 	In Marine Particles: Analysis and Characterization, Hurd, D. C. & D.W. Spenser (eds.) 	Geophysical Monograph 63. American Geophysical Union, Washington, D.C.,pp. 363–367.
+
+4. Hjorth, T. (2004). Effects of freeze-drying on partitioning patterns of major elements and 	trace metals in lake sediments. Analytica Chimica Acta, 526(1), 95-102.
+
+5. Mortlock, R. A., & Froelich, P. N. (1989). A simple method for the rapid determination of 	biogenic opal in pelagic marine sediments. Deep Sea Research Part A. 	Oceanographic Research Papers, 36(9), 1415-1426.
+
+6. Strickland, J. D. H. (1952). The preparation and properties of silicomolybdic acid. I. The properties of alpha silicomolybdic acid. Journal of the American Chemical 	Society, 74(4), 862-867. 
+
+7. Strickland, J. D. H., & Parsons, T. R. (1972). A practical handbook of seawater analysis.
+
+
